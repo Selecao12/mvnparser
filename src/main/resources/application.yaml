@@ -1,0 +1,2 @@
+mvnparser:
+  apiUrl: https://search.maven.org/solrsearch/select

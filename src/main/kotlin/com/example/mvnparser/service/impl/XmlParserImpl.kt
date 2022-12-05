@@ -21,6 +21,10 @@ class XmlParserImpl : XmlParser {
         return document.xmlEncoding
     }
 
+    fun parseToDto(xml: String) {
+
+    }
+
     private fun parseProperties(properties: Document): Map<String, String> {
         return mapOf()
     }
