@@ -21,6 +21,18 @@ class ParserProcessorImpl(
         return getImplementations(resolvedPom)
     }
 
+    override fun processAll(implementations: List<String>): Set<String> = implementations.map {
+        val (groupId, artifactId, version) = parseImplementation(it)
+        process(groupId, artifactId, version)
+    }.flatten().toSet()
+
+    private fun parseImplementation(implementation: String): Triple<String, String, String> {
+        val split = implementation.split(":")
+        if (split.size != 3) throw IllegalStateException("Invalid implementation string.") // todo to validation constraint
+
+        return Triple(split[0], split[1], split[2])
+    }
+
     private fun getHierarchicalPomList(groupId: String, artifactId: String, version: String): MutableList<Pom> {
         var pom = requestPom(groupId, artifactId, version)
         val pomList: MutableList<Pom> = mutableListOf(pom)

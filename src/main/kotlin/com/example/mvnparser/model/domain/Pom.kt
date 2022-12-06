@@ -10,6 +10,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 data class Pom(
 
     @JacksonXmlProperty(localName = "parent")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     val parent: Parent?,
 
     @JacksonXmlElementWrapper(localName = "properties")
