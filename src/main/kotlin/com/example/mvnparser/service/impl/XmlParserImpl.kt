@@ -1,35 +1,25 @@
 package com.example.mvnparser.service.impl
 
+import com.example.mvnparser.model.domain.Pom
 import com.example.mvnparser.service.XmlParser
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.springframework.stereotype.Service
 import org.w3c.dom.Document
-import org.xml.sax.InputSource
-import java.io.StringReader
-import javax.xml.parsers.DocumentBuilderFactory
 
 @Service
 class XmlParserImpl : XmlParser {
-    override fun parse(xml: String): String? {
-        val documentBuilderFactory = DocumentBuilderFactory.newInstance()
-        documentBuilderFactory.isNamespaceAware = true
 
-        val documentBuilder = documentBuilderFactory.newDocumentBuilder()
-        val document = documentBuilder.parse(InputSource(StringReader(xml)))
+    private val xmlMapper = XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(false) })
+        .registerKotlinModule()
+        .apply {
+            enable(SerializationFeature.INDENT_OUTPUT)
+//            disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES)
+        }
 
-        val properties = parseProperties(document)
-
-        return document.xmlEncoding
-    }
-
-    fun parseToDto(xml: String) {
-
-    }
-
-    private fun parseProperties(properties: Document): Map<String, String> {
-        return mapOf()
-    }
-
-    private fun parseDependencies(document: Document) {
-        
+    override fun parse(xml: String): Pom {
+        return xmlMapper.readValue(xml, Pom::class.java)
     }
 }

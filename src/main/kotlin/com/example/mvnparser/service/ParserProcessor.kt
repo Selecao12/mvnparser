@@ -7,5 +7,5 @@ interface ParserProcessor {
         groupId: String,
         artifactId: String,
         version: String,
-    ): String?
+    ): List<String>
 }
