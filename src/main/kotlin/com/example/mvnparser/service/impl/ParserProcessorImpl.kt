@@ -88,7 +88,6 @@ class ParserProcessorImpl(
 
     private fun buildFilepath(groupId: String, artifactId: String, version: String): String {
         val group = groupId.replace('.', '/')
-        val artifact = artifactId.replace('.', '/')
-        return "$group/$artifact/$version/$artifact-$version.pom"
+        return "$group/$artifactId/$version/$artifactId-$version.pom"
     }
 }
