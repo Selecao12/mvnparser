@@ -9,19 +9,33 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Pom(
 
+    val groupId: String?,
+    val artifactId: String?,
+    val version: String?,
+
     @JacksonXmlProperty(localName = "parent")
     @JsonIgnoreProperties(ignoreUnknown = true)
     val parent: Parent?,
 
     @JacksonXmlElementWrapper(localName = "properties")
-    val properties: Map<String, String>?,
+    val properties: MutableMap<String, String>?,
 
     val dependencyManagement: DependencyManagement?,
 
     @JacksonXmlElementWrapper(localName = "dependencies")
     @JsonIgnoreProperties(ignoreUnknown = true)
-    val dependencies: List<Dependency>?
+    val dependencies: List<Dependency>?,
+
+    var parentPom: Pom?,
 ) {
+    fun getGroupIdOrParentGroupId(): String? {
+        return groupId ?: parentPom?.getGroupIdOrParentGroupId()
+    }
+
+    fun getVersionOrParentVersion(): String? {
+        return version ?: parentPom?.getVersionOrParentVersion()
+    }
+
     data class DependencyManagement(
         @JacksonXmlElementWrapper(localName = "dependencies")
         @JsonIgnoreProperties(ignoreUnknown = true)
@@ -35,7 +49,7 @@ data class Pom(
     )
 
     data class Dependency(
-        val groupId: String?,
+        var groupId: String?,
         val artifactId: String?,
         var version: String?,
     )
