@@ -46,14 +46,14 @@ class ParserProcessorImpl(
     }
 
     private fun logUnresolved(
-        resolvedDependencies: List<Pom.Dependency>,
+        dependencies: List<Pom.Dependency>,
         groupId: String,
         artifactId: String,
         version: String
     ) {
-        val unresolvedDependencies = resolvedDependencies.filter {
-            it.groupId == null || it.groupId!!.startsWith("\${") ||
-                    it.version == null || it.version!!.startsWith("\${")
+        val unresolvedDependencies = dependencies.filter {
+            it.groupId == null || it.groupId!!.contains("\${") ||
+                    it.version == null || it.version!!.contains("\${")
         }
         if (unresolvedDependencies.isNotEmpty()) {
             val implementations = buildString {

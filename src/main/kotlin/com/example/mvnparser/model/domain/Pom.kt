@@ -18,7 +18,7 @@ data class Pom(
     val parent: Parent?,
 
     @JacksonXmlElementWrapper(localName = "properties")
-    val properties: MutableMap<String, String>?,
+    val properties: LinkedHashMap<String, String>?,
 
     val dependencyManagement: DependencyManagement?,
 
@@ -30,6 +30,10 @@ data class Pom(
 ) {
     fun getGroupIdOrParentGroupId(): String? {
         return groupId ?: parentPom?.getGroupIdOrParentGroupId()
+    }
+
+    fun getArtifactIdOrParentArtifactId(): String? {
+        return artifactId ?: parentPom?.getArtifactIdOrParentArtifactId()
     }
 
     fun getVersionOrParentVersion(): String? {

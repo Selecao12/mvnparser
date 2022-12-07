@@ -12,7 +12,8 @@ class PomDependenciesVersionResolverImpl : PomDependenciesVersionResolver {
 
         setParents(poms)
 
-        fillProjectGroupIdAndVersion(poms)
+        fillProjectGroupIdArtifactIdVersion(poms)
+        fillPropertiesWithItself(poms)
 
         val requiredPom = poms.first()
 
@@ -41,7 +42,7 @@ class PomDependenciesVersionResolverImpl : PomDependenciesVersionResolver {
         }
     }
 
-    private fun fillProjectGroupIdAndVersion(poms: MutableList<Pom>) {
+    private fun fillProjectGroupIdArtifactIdVersion(poms: MutableList<Pom>) {
         poms.forEach { pom ->
             pom.properties.orEmpty().forEach {
                 if (it.value == "\${project.groupId}") {
@@ -49,6 +50,13 @@ class PomDependenciesVersionResolverImpl : PomDependenciesVersionResolver {
                         pom.properties!![it.key] = pom.getGroupIdOrParentGroupId()!!
                     }.onFailure {
                         println("Something goes wrong ${pom.properties}, ${pom.getGroupIdOrParentGroupId()}") // todo logger
+                    }
+                }
+                if (it.value == "\${project.artifactId}") {
+                    kotlin.runCatching {
+                        pom.properties!![it.key] = pom.getArtifactIdOrParentArtifactId()!!
+                    }.onFailure {
+                        println("Something goes wrong ${pom.properties}, ${pom.getArtifactIdOrParentArtifactId()}") // todo logger
                     }
                 }
                 if (it.value == "\${project.version}") {
@@ -65,6 +73,36 @@ class PomDependenciesVersionResolverImpl : PomDependenciesVersionResolver {
                 }
                 if (dependency.version == "\${project.version}") {
                     dependency.version = pom.getVersionOrParentVersion()
+                }
+            }
+        }
+    }
+
+    private fun fillPropertiesWithItself(poms: MutableList<Pom>) {
+        for (i in poms.size -1 downTo 0) {
+            val pom = poms[i]
+            val properties = pom.properties ?: linkedMapOf()
+            properties.forEach {
+                if (it.value.startsWith("\${")) {
+                    val substitutedValue = it.value.substring(2, it.value.length - 1)
+
+                    var pomToSearchProps: Pom? = pom
+
+                    var propValue: String? = null
+                    while (pomToSearchProps != null) {
+                        if (pomToSearchProps.properties.orEmpty().containsKey(substitutedValue)) {
+                            propValue = pomToSearchProps.properties!![substitutedValue]
+                            break
+                        } else {
+                            pomToSearchProps = pomToSearchProps.parentPom
+                        }
+                    }
+
+                    if (propValue != null) {
+                        properties[it.key] = propValue
+                    } else {
+                        println("value ${it.value} is not present in properties")
+                    }
                 }
             }
         }
