@@ -6,41 +6,40 @@ import org.springframework.stereotype.Service
 
 @Service
 class PomDependenciesVersionResolverImpl : PomDependenciesVersionResolver {
-    override fun resolve(poms: MutableList<Pom>): Pom {
-        if (poms.isEmpty()) throw IllegalStateException("No poms provided.")
-        if (poms.size == 1) return fillSinglePomDependencies(poms.first()) // fill dependencies
+    override fun resolve(poms: MutableList<Pom>): List<Pom.Dependency> {
+        if (poms.isEmpty()) return emptyList()
 
         val requiredPom = poms.first()
 
-        val dependencyManagements = getDependencyManagements(poms)
-        val propertiesList = getPropertiesList(poms)
+        val properties = getAllProperties(poms)
 
-        dependencyManagements.forEach {
-            requiredPom.fillDependenciesVersion(it)
-        }
-        propertiesList.forEach {
-            requiredPom.fillDependenciesVersion(it)
+        val dependenciesWithVersionOrPropsVersion = requiredPom.dependencies.orEmpty().filter { it.version != null }
+
+        val dependenciesFromManagements = getDependenciesFromDepsManagements(poms)
+        val allDependencies = dependenciesWithVersionOrPropsVersion + dependenciesFromManagements
+
+        allDependencies.forEach {
+            if (it.version!!.startsWith("\${")) {
+                val versionPropsKey = it.version!!.substring(2, it.version!!.length - 1)
+                properties[versionPropsKey]?.let { version ->
+                    it.version = version
+                }
+            }
         }
 
-        return requiredPom
+        return allDependencies
     }
 
-    private fun getDependencyManagements(poms: List<Pom>): List<Pom.DependencyManagement> {
-        return poms.filter { it.hasDependencyManagement() }.map { it.dependencyManagement!! }
+    private fun getDependenciesFromDepsManagements(poms: List<Pom>): List<Pom.Dependency> {
+        return poms.filter { it.dependencyManagement != null }
+            .map { it.dependencyManagement!! }
+            .flatMap { it.dependencies.orEmpty() }
     }
 
-    private fun getPropertiesList(poms: List<Pom>): List<Map<String, String>> {
-        return poms.filter { it.hasProperties() }.map { it.properties!! }
-    }
-
-    private fun fillSinglePomDependencies(pom: Pom): Pom {
-        if (pom.hasDependencyManagement()) {
-            pom.fillDependenciesVersion(pom.dependencyManagement!!)
-        }
-        if (pom.hasProperties()) {
-            pom.fillDependenciesVersion(pom.properties!!)
-        }
-
-        return pom
+    private fun getAllProperties(poms: List<Pom>): MutableMap<String, String> {
+        return poms.map { it.properties.orEmpty() }
+            .fold(mutableMapOf()) { acc, props ->
+                acc.also { it.putAll(props) }
+            }
     }
 }

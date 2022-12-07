@@ -16,9 +16,9 @@ class ParserProcessorImpl(
     override fun process(groupId: String, artifactId: String, version: String): List<String> {
         val pomList: MutableList<Pom> = getHierarchicalPomList(groupId, artifactId, version)
 
-        val resolvedPom = pomDependenciesVersionResolver.resolve(pomList)
+        val resolvedDependencies = pomDependenciesVersionResolver.resolve(pomList)
 
-        return getImplementations(resolvedPom)
+        return getImplementations(resolvedDependencies)
     }
 
     override fun processAll(implementations: List<String>): Set<String> = implementations.map {
@@ -36,7 +36,7 @@ class ParserProcessorImpl(
     private fun getHierarchicalPomList(groupId: String, artifactId: String, version: String): MutableList<Pom> {
         var pom = requestPom(groupId, artifactId, version)
         val pomList: MutableList<Pom> = mutableListOf(pom)
-        while (pom.hasParent()) {
+        while (pom.parent != null) {
             val (parentGroupId, parentArtifactId, parentVersion) = pom.parent!!
             pom = requestPom(parentGroupId, parentArtifactId, parentVersion)
             pomList.add(pom)
@@ -44,8 +44,8 @@ class ParserProcessorImpl(
         return pomList
     }
 
-    private fun getImplementations(resolvedPom: Pom) =
-        resolvedPom.dependencies.orEmpty().map {
+    private fun getImplementations(resolvedDependencies: List<Pom.Dependency>) =
+        resolvedDependencies.map {
             buildString {
                 append(it.groupId)
                 append(":")

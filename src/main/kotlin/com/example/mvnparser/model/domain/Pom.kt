@@ -26,19 +26,7 @@ data class Pom(
         @JacksonXmlElementWrapper(localName = "dependencies")
         @JsonIgnoreProperties(ignoreUnknown = true)
         val dependencies: List<Dependency>?
-    ) {
-        fun hasUndefinedDependenciesVersion() = dependencies.orEmpty().any {
-            it.hasUndefinedVersion()
-        }
-
-        fun fillDependenciesVersion(properties: Map<String, String>) {
-            dependencies?.forEach {
-                properties[it.version]?.let { version ->
-                    it.version = version
-                }
-            }
-        }
-    }
+    )
 
     data class Parent(
         val groupId: String,
@@ -50,40 +38,5 @@ data class Pom(
         val groupId: String?,
         val artifactId: String?,
         var version: String?,
-    ) {
-        fun hasUndefinedVersion() = version == null || version!!.startsWith("$\\{")
-    }
-
-    fun hasParent() = parent != null
-    fun hasProperties() = !properties.isNullOrEmpty()
-
-    fun hasDependencyManagement() = !dependencyManagement?.dependencies.isNullOrEmpty()
-    fun hasUndefinedDependenciesVersion() = dependencies.orEmpty().any {
-        it.hasUndefinedVersion()
-    }
-
-    fun fillDependenciesVersion(properties: Map<String, String>) {
-        dependencies?.forEach {
-            if (it.version != null && it.version!!.startsWith("\${")) {
-                val versionPropsKey = it.version!!.substring(2, it.version!!.length - 1)
-                properties[versionPropsKey]?.let { version ->
-                    it.version = version
-                }
-            }
-        }
-    }
-
-    fun fillDependenciesVersion(dependencyManagement: DependencyManagement) {
-        dependencies?.forEach { dependency ->
-            dependencyManagement.dependencies.orEmpty().find {
-                it.groupId == dependency.groupId && it.artifactId == dependency.artifactId
-            }?.let {
-                if (dependency.hasUndefinedVersion()) {
-                    dependency.version = it.version
-                }
-            }
-        }
-    }
-
-
+    )
 }
