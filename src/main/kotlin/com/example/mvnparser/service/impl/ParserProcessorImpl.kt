@@ -13,10 +13,10 @@ class ParserProcessorImpl(
     private val xmlParser: XmlParser,
     private val pomDependenciesVersionResolver: PomDependenciesVersionResolver,
 ) : ParserProcessor {
-    override fun processAll(implementations: List<String>): Set<String> = implementations.map {
+    override fun processAll(implementations: List<String>, returnRequestImplementations: Boolean): Set<String> = implementations.map {
         val (groupId, artifactId, version) = parseImplementation(it)
         process(groupId, artifactId, version)
-    }.flatten().toSet()
+    }.flatten().let { if (returnRequestImplementations) it.plus(implementations) else it }.toSet()
 
     private fun parseImplementation(implementation: String): Triple<String, String, String> {
         val split = implementation.split(":")

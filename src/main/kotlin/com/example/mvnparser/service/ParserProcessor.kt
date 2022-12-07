@@ -7,5 +7,5 @@ interface ParserProcessor {
         version: String,
     ): List<String>
 
-    fun processAll(implementations: List<String>): Set<String>
+    fun processAll(implementations: List<String>, returnRequestImplementations: Boolean): Set<String>
 }

@@ -1,7 +1,6 @@
 package com.example.mvnparser.controller
 
 import com.example.mvnparser.service.ParserProcessor
-import com.example.mvnparser.service.XmlParser
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -22,6 +21,9 @@ class ParserController(
     ): ResponseEntity<List<String>> = ResponseEntity.ok(parserProcessor.process(groupId, artifactId, version))
 
     @PostMapping("/v1/parse-all")
-    fun parse(@RequestBody implementations: List<String>): ResponseEntity<Set<String>> =
-        ResponseEntity.ok(parserProcessor.processAll(implementations))
+    fun parse(
+        @RequestBody implementations: List<String>,
+        @RequestParam(defaultValue = "true") returnRequestImplementations: Boolean,
+    ): ResponseEntity<Set<String>> =
+        ResponseEntity.ok(parserProcessor.processAll(implementations, returnRequestImplementations))
 }
